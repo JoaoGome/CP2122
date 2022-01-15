@@ -21,15 +21,13 @@ lista* create(int size)
 
 void addElemento (lista* lista, int elemento)
 {
-    if (lista -> ocupado < lista -> tamanho)
-    {
-        (lista -> list)[lista -> ocupado] = elemento;
-        (lista -> ocupado)++;
-    }
-    else
+    if (! ( lista -> ocupado < lista -> tamanho ))
     {
         // realocar memoria bla bla bla
+        lista->list = realloc( (lista->list) , (lista->tamanho)*2*sizeof(int));
     }
+    (lista -> list)[lista -> ocupado] = elemento;
+    (lista -> ocupado)++;
 }
 
 void print(lista* lista)
@@ -110,6 +108,4 @@ int main (void)
         printf("%d\n",a[i]);
 
     printf("%fs to execute\n", cpu_time_used);
-
-        
 }

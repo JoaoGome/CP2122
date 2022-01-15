@@ -8,6 +8,3 @@ int main(void){
 
     return 0;
 }
-
-
-gcc-11 -fopenmp hello.c
