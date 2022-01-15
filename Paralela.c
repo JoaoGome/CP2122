@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include "omp.h"
 
 #define SIZE 24
@@ -25,12 +26,8 @@ void addElemento (lista* lista, int elemento)
 {
     if (! ( lista -> ocupado < lista -> tamanho ))
     {
-        //#pragma omp critical
-        //{
-            // realocar memoria bla bla bla
-            lista->list = realloc( (lista->list) , (lista->tamanho)*2*sizeof(int));
-            lista->tamanho *=2;
-        //}
+        lista->list = realloc( (lista->list) , (lista->tamanho)*2*sizeof(int));
+        lista->tamanho *=2;
     }
     (lista -> list)[lista -> ocupado] = elemento;
     (lista -> ocupado)++;
@@ -69,20 +66,25 @@ void bucketSort (int elementos[],int N)
     int nrBuckets = (max(elementos,N) / 10) + 1;
 
     lista* listas[nrBuckets];
-
+    omp_lock_t locks[nrBuckets];
+    for(int i=0;i<nrBuckets;i++){
+        omp_init_lock(&locks[i]);
+    }
     // criar cada bucket
     #pragma omp parallel for
     for (int i = 0; i < nrBuckets; i++)
         listas[i] = create(10);
-
     // inserir elementos no bucket correto
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for (int i = 0; i < N; i++)
     {
         int bucket = elementos[i] / 10;
-        lista* lista = listas[bucket];
+        
         //addElemento(listas[bucket],elementos[i]);
-        //#pragma omp critical
+        lista* lista = listas[bucket];
+
+        omp_set_lock(&locks[bucket]);
+
         if (! ( lista -> ocupado < lista -> tamanho ))
         {
             //#pragma omp critical
@@ -94,6 +96,8 @@ void bucketSort (int elementos[],int N)
         }
         (lista -> list)[lista -> ocupado] = elementos[i];
         (lista -> ocupado)++;
+   
+        omp_unset_lock(&locks[bucket]);
     }
 
     // ordenar cada bucket
@@ -101,18 +105,18 @@ void bucketSort (int elementos[],int N)
     for (int i = 0; i < nrBuckets; i++)
         qsort(listas[i]->list,listas[i] -> ocupado, sizeof(int),cmpfunc);
 
+    int pos[nrBuckets];
+    pos[0]=0;
 
-    int contador = 0;
+    for(int i = 1; i<nrBuckets ; i++){
+        pos[i]=pos[i-1]+listas[i-1]->ocupado;
+    }
 
     // reeordenar o array original com os elementos dos buckets ordenados
+    #pragma omp parallel for
     for (int i = 0; i < nrBuckets; i++)
     {
-        for (int j = 0; j < listas[i] -> ocupado; j++)
-        {
-            elementos[contador] = (listas[i]->list)[j];
-            contador++;
-        }
-
+        memcpy(elementos+pos[i], listas[i]->list, listas[i]->ocupado * sizeof(int));
         freeL(listas[i]);
     }
 }
@@ -127,7 +131,7 @@ int* randa(int n, int max){
 int main (void)
 {
     int m = 1000000;
-    int max = 3000;
+    int max = 30000;
     int* a = randa(m,max);
     double avg =0;
     for(int i=0;i<10;i++){

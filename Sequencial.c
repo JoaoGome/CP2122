@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "omp.h"
+
 #define SIZE 24
 
 typedef struct lista
@@ -23,11 +25,16 @@ void addElemento (lista* lista, int elemento)
 {
     if (! ( lista -> ocupado < lista -> tamanho ))
     {
-        // realocar memoria bla bla bla
-        lista->list = realloc( (lista->list) , (lista->tamanho)*2*sizeof(int));
+        //#pragma omp critical
+        //{
+            // realocar memoria bla bla bla
+            lista->list = realloc( (lista->list) , (lista->tamanho)*2*sizeof(int));
+            lista->tamanho *=2;
+        //}
     }
     (lista -> list)[lista -> ocupado] = elemento;
     (lista -> ocupado)++;
+    
 }
 
 void print(lista* lista)
@@ -64,17 +71,33 @@ void bucketSort (int elementos[],int N)
     lista* listas[nrBuckets];
 
     // criar cada bucket
+    //#pragma omp parallel for
     for (int i = 0; i < nrBuckets; i++)
         listas[i] = create(10);
 
     // inserir elementos no bucket correto
+    //#pragma omp parallel for
     for (int i = 0; i < N; i++)
     {
         int bucket = elementos[i] / 10;
-        addElemento(listas[bucket],elementos[i]);
+        lista* lista = listas[bucket];
+        //addElemento(listas[bucket],elementos[i]);
+        //#pragma omp critical
+        if (! ( lista -> ocupado < lista -> tamanho ))
+        {
+            //#pragma omp critical
+            {
+                // realocar memoria bla bla bla
+                lista->list = realloc( (lista->list) , (lista->tamanho)*2*sizeof(int));
+                lista->tamanho *=2;
+            }
+        }
+        (lista -> list)[lista -> ocupado] = elementos[i];
+        (lista -> ocupado)++;
     }
 
     // ordenar cada bucket
+    //#pragma omp parallel for
     for (int i = 0; i < nrBuckets; i++)
         qsort(listas[i]->list,listas[i] -> ocupado, sizeof(int),cmpfunc);
 
@@ -93,19 +116,34 @@ void bucketSort (int elementos[],int N)
         freeL(listas[i]);
     }
 }
-
+int* randa(int n, int max){
+    int* array = malloc( n*sizeof(int));
+    for(int i =0 ; i<n; i++){
+        array[i] = rand()%max;
+    }
+    return array;
+}
 
 int main (void)
 {
-    int a[] = {29,25,3,49,9,37,21,43,1,2,67,87,56,90,876,345,234,4,5,6,2,45,26,346};
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();
-    bucketSort(a,SIZE);
-    end = clock();
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    for (int i = 0; i < SIZE; i++)
-        printf("%d\n",a[i]);
+    int m = 1000000;
+    int max = 3000;
+    int* a = randa(m,max);
+    double avg =0;
+    for(int i=0;i<10;i++){
+        double start, end;
+        double cpu_time_used;
+        start = omp_get_wtime();
+        bucketSort(a,m);
+        end = omp_get_wtime();
+        cpu_time_used = ((double) (end - start));
+        printf("%fs to execute\n", cpu_time_used);
+        avg+=cpu_time_used;
+    }
+    avg = avg/10;
+    printf("%f \n",avg);
+    for (int i = 0; i < m; i++){
+    //printf("%d\n",a[i]);
+    }
 
-    printf("%fs to execute\n", cpu_time_used);
 }
