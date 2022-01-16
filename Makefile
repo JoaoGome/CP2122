@@ -23,18 +23,18 @@ LIBS = -L/share/apps/papi/5.4.1/lib -lm -lpapi
 default: $(OUT)
 
 .cpp.o:
-        $(CCC) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
+		$(CCC) $(CCFLAGS) $(INCLUDES)  -c $< -o $@
 
 .c.o:
-        $(CCC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
+		$(CCC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
 
 $(OUT): $(OBJ)
-        $(CCC) -o $(OUT) $(CCFLAGS) $(OBJ) $(LIBS)
+		$(CCC) -o $(OUT) $(CCFLAGS) $(OBJ) $(LIBS)
 
 depend:  dep
 #
 #dep:
-#       makedepend -- $(CFLAGS) -- $(INCLUDES) $(SRC)
+#		makedepend -- $(CFLAGS) -- $(INCLUDES) $(SRC)
 
 clean:
-        rm -f *.o .a *~ Makefile.bak $(OUT)
+		rm -f *.o .a *~ Makefile.bak $(OUT)

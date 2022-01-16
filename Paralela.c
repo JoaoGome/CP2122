@@ -15,7 +15,7 @@
 int Events[NUM_EVENTS] = { PAPI_TOT_CYC, PAPI_TOT_INS, PAPI_L1_DCM, PAPI_L2_DCM };
 long long values[NUM_EVENTS], min_values[NUM_EVENTS];
 int retval, EventSet=PAPI_NULL;
-long long valuematrix[RUNS][NUM_EVENTS]
+long long valuematrix[RUNS][NUM_EVENTS];
 
 typedef struct lista
 {
@@ -148,7 +148,7 @@ int main (void)
     omp_set_dynamic(0);
 
     // Initialize PAPI
-    int num_hwcounters = 0;
+    int num_hwcntrs = 0;
     retval = PAPI_library_init(PAPI_VER_CURRENT);
     if (retval != PAPI_VER_CURRENT) {
         fprintf(stderr,"PAPI library init error!\n");
@@ -209,7 +209,7 @@ int main (void)
             i=+BUCKET_SIZE;
         }
 
-        bucketSort(a,m);
+        bucketSort(a,SIZE);
         
         if (PAPI_stop(EventSet,values) != PAPI_OK) {
             fprintf (stderr, "PAPI error stoping counters!\n");
@@ -219,19 +219,19 @@ int main (void)
         end=PAPI_get_real_usec();
         elapsed = end - start;
         
-        if ((run==0) || (elapsed_usec < min_usec)) {
-            min_usec = elapsed_usec;
+        if ((i==0) || (elapsed < min)) {
+            min = elapsed;
             for (int j=0 ; j< NUM_EVENTS ; j++) min_values[j] = values [j];
         }
         for (int j=0 ; j< NUM_EVENTS ; j++) valuematrix[i][j] = values [j];
     }
-    printf ("\nWall clock time: %lld usecs\n", min_usec);
+    printf ("\nWall clock time: %lld usecs\n", min);
 
     // output PAPI counters' values
     printf("best run:\n");
     for (i=0 ; i< NUM_EVENTS ; i++) {
         char EventCodeStr[PAPI_MAX_STR_LEN];
-        printf("best run:\n")
+        printf("best run:\n");
         if (PAPI_event_code_to_name(Events[i], EventCodeStr) == PAPI_OK) {
             printf ( "%s = %lld\n", EventCodeStr, min_values[i]);
         } else {
@@ -241,13 +241,13 @@ int main (void)
     printf("average:\n");
     
     for (i=0 ; i< NUM_EVENTS ; i++) {
-        long long avg;
+        long long avg=0L;
         for(int j=0; j < RUNS; j++){
                avg+=valuematrix[j][i];
         }
         avg=avg/NUM_EVENTS;
         char EventCodeStr[PAPI_MAX_STR_LEN];
-        printf("best run:\n")
+        printf("best run:\n");
         if (PAPI_event_code_to_name(Events[i], EventCodeStr) == PAPI_OK) {
             printf ( "%s = %lld\n", EventCodeStr, avg);
         } else {
