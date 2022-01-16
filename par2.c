@@ -9,7 +9,7 @@
 #define MAX 1<<20
 #define NUM_THREADS 8
 #define BUCKET_SIZE 16
-#define CHUNK 512
+#define CHUNK 1024
 #define RUNS 16
 #define NUM_EVENTS 4
 int Events[NUM_EVENTS] = { PAPI_TOT_CYC, PAPI_TOT_INS, PAPI_L1_DCM, PAPI_L2_DCM };
@@ -207,7 +207,7 @@ int main (void)
 
     //runs the algo multiple times for consistency's sake
     for(int i=0 ; i<RUNS; i++){
-        printf("starting run number %d\n",i);
+        //printf("starting run number %d\n",i);
         //printf("line:%d\n",__LINE__);
         //fflush(stdout);
         start=PAPI_get_real_usec();
@@ -228,10 +228,10 @@ int main (void)
             a[0]*=1; 
             //k=+BUCKET_SIZE;
         //}
-        printf("sorting...\n");
+        //printf("sorting...\n");
         //fflush(stdout);
         bucketSort(a,SIZE);
-        printf("finished sorting");
+        //printf("finished sorting");
         //fflush(stdout);
 
         if (PAPI_stop(EventSet,values) != PAPI_OK) {
@@ -252,9 +252,9 @@ int main (void)
         for (int i=0 ; i< NUM_EVENTS ; i++) {
             char EventCodeStr[PAPI_MAX_STR_LEN];
             if (PAPI_event_code_to_name(Events[i], EventCodeStr) == PAPI_OK) {
-                printf ( "%s = %lld\n", EventCodeStr, values[i]);
+                //printf ( "%s = %lld\n", EventCodeStr, values[i]);
             } else {
-                printf ( "PAPI UNKNOWN EVENT = %lld\n", values[i]);
+                //printf ( "PAPI UNKNOWN EVENT = %lld\n", values[i]);
             }
         }
         for (int j=0 ; j< NUM_EVENTS ; j++) valuematrix[i][j] = values [j];
