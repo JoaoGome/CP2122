@@ -8,10 +8,9 @@
 #define SIZE 1<<15
 #define MAX 1<<20
 #define NUM_THREADS 8
-#define NUM_EVENTS 4
 #define BUCKET_SIZE 16
 #define RUNS 16
-
+#define NUM_EVENTS 4
 int Events[NUM_EVENTS] = { PAPI_TOT_CYC, PAPI_TOT_INS, PAPI_L1_DCM, PAPI_L2_DCM };
 long long values[NUM_EVENTS], min_values[NUM_EVENTS];
 int retval, EventSet=PAPI_NULL;
@@ -205,9 +204,9 @@ int main (void)
 
     //runs the algo multiple times for consistency's sake
     for(int i=0 ; i<RUNS; i++){
-        printf("start run number %d\n",i);
-        printf("line:%d\n",__LINE__);
-        fflush(stdout);
+        printf("starting run number %d\n",i);
+        //printf("line:%d\n",__LINE__);
+        //fflush(stdout);
         start=PAPI_get_real_usec();
         if (PAPI_start(EventSet) != PAPI_OK) {
             fprintf (stderr, "PAPI error starting counters!\n");
@@ -219,25 +218,25 @@ int main (void)
         int* a = randa(SIZE,MAX);   
         //da load ao primeiro elemento do array para quando executar o algoritmo de sorting nao comecar logo com tudo cache misses
         // tbm da consistencia ao longo de varios testes pq no segundo ele ja na ia dar cache misses, agora nao da logo no primeiro
-        printf("line:%d\n",__LINE__);
-        fflush(stdout);
+        //printf("line:%d\n",__LINE__);
+        //fflush(stdout);
 
         //while(k<( cachelines/2 )){
             a[0]*=1; 
             //k=+BUCKET_SIZE;
         //}
         printf("sorting...\n");
-        fflush(stdout);
+        //fflush(stdout);
         bucketSort(a,SIZE);
         printf("finished sorting");
-        fflush(stdout);
+        //fflush(stdout);
 
         if (PAPI_stop(EventSet,values) != PAPI_OK) {
             fprintf (stderr, "PAPI error stoping counters!\n");
             return 0;
         }
-        printf("line:%d\n",__LINE__);
-        fflush(stdout);
+        //printf("line:%d\n",__LINE__);
+        //fflush(stdout);
 
         end=PAPI_get_real_usec();
         elapsed = end - start;
@@ -271,7 +270,7 @@ int main (void)
         }
     }
     printf("\n\naverage:\n");
-    printf("avg time: %lld",timesum/RUNS);
+    printf("avg time: %lld\n",timesum/RUNS);
     for (int i=0 ; i< NUM_EVENTS ; i++) {
         long long avg=0L;
         for(int j=0; j < RUNS; j++){
